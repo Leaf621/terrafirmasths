@@ -89,8 +89,10 @@ function Anvil() {
                         <TextField label="От" type="number" value={fromPoints} onChange={(e) => setFromPoints(Number(e.target.value))} />
                         <TextField label="До" type="number" value={toPoints} onChange={(e) => setToPoints(Number(e.target.value))} />
                         <Divider/>
-                        <Button variant="outlined" onClick={() => setSaveOpen(true)}>Сохранить</Button>
-                        <Button variant="outlined" onClick={() => setStorageOpen(true)}>Сохранённые расчёты</Button>
+                        <Stack gap={2} direction="row">
+                            <Button variant="outlined" onClick={() => setSaveOpen(true)}>Сохранить</Button>
+                            <Button variant="outlined" onClick={() => setStorageOpen(true)}>Сохранённые расчёты</Button>
+                        </Stack>
                     </Stack>
                     <Stack>
                         <Typography variant="h6" component="h2" gutterBottom>
