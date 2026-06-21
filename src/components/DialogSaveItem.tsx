@@ -1,6 +1,6 @@
 import { Button, Dialog, DialogContent, DialogTitle, Stack, TextField } from "@mui/material"
 import { useRef } from "react"
-import { createItem, saveItem } from "../logic/storage"
+import { useStorage } from "../logic/storage"
 
 type Props = {
     open: boolean;
@@ -11,18 +11,13 @@ type Props = {
 };
 
 function DialogSaveItem({ open, onClose, fromPoints, toPoints, conditions }: Props) {
+    const addItem = useStorage((state) => state.addItem);
     const name = useRef<HTMLInputElement>(null);
 
     const handleSubmit = (event: React.FormEvent) => {
         if (!name.current) return;
         event.preventDefault();
-        const item = createItem(
-            name.current.value,
-            conditions,
-            fromPoints,
-            toPoints
-        );
-        saveItem(item);
+        addItem(name.current.value, conditions, fromPoints, toPoints);
         onClose();
     };
 

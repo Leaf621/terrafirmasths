@@ -1,4 +1,5 @@
-const ITEMS = 'anvil_storage_items';
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 export type Item = {
     id: number;
@@ -6,34 +7,30 @@ export type Item = {
     conditions: number[];
     fromPoints: number;
     toPoints: number;
-}
+};
 
-export function createItem(name: string, conditions: number[], fromPoints: number, toPoints: number): Item {
-    return {
-        id: Date.now(),
-        name,
-        conditions,
-        fromPoints,
-        toPoints
-    };
-}
+type StorageState = {
+    items: Item[];
+    addItem: (name: string, conditions: number[], fromPoints: number, toPoints: number) => void;
+    removeItem: (id: number) => void;
+};
 
-export function saveItem(item: Item) {
-    const items = loadItems();
-    items.push(item);
-    localStorage.setItem(ITEMS, JSON.stringify(items));
-}
-
-export function loadItems(): Item[] {
-    const data = localStorage.getItem(ITEMS);
-    if (!data) {
-        return [];
-    }
-    return JSON.parse(data) as Item[];
-}
-
-export function deleteItem(id: number) {
-    const items = loadItems();
-    const filtered = items.filter(item => item.id !== id);
-    localStorage.setItem(ITEMS, JSON.stringify(filtered));
-}
+export const useStorage = create<StorageState>()(
+    persist(
+        (set) => ({
+            items: [],
+            addItem: (name, conditions, fromPoints, toPoints) =>
+                set((state) => ({
+                    items: [
+                        ...state.items,
+                        { id: Date.now(), name, conditions, fromPoints, toPoints },
+                    ],
+                })),
+            removeItem: (id) =>
+                set((state) => ({
+                    items: state.items.filter((item) => item.id !== id),
+                })),
+        }),
+        { name: 'anvil_storage_items' }
+    )
+);
