@@ -1,6 +1,7 @@
 import { Stack } from '@mui/material';
 import image from '../assets/conditions.png';
 import StepSprite from './StepSprite';
+import { useMemo } from 'react';
 
 const sprite_width = 352;
 const sprite_height = 120;
@@ -10,7 +11,7 @@ type Props = {
 };
 
 function Conditions({ conditions }: Props) {
-    const reversed = [...conditions].reverse();
+    const reversed = useMemo(() => [...conditions].reverse(), [conditions]);
     return <Stack
         direction="row"
         spacing="36px"

@@ -10,19 +10,18 @@ type Props = {
     value: number;
 };
 
-const coordinates = (value: number) => {
-    switch (value) {
-        case -3: return { x: 0, y: 0 };
-        case -6: return { x: 1, y: 0 };
-        case 2: return { x: 2, y: 0 };
-        case 7: return { x: 3, y: 0 };
-        case -9: return { x: 0, y: 1 };
-        case -15: return { x: 1, y: 1 };
-        case 13: return { x: 2, y: 1 };
-        case 16: return { x: 3, y: 1 };
-    }
-    return { x: 0, y: 0 };
-}
+const spriteMap = new Map<number, { x: number; y: number }>([
+    [-3,  { x: 0, y: 0 }],
+    [-6,  { x: 1, y: 0 }],
+    [2,   { x: 2, y: 0 }],
+    [7,   { x: 3, y: 0 }],
+    [-9,  { x: 0, y: 1 }],
+    [-15, { x: 1, y: 1 }],
+    [13,  { x: 2, y: 1 }],
+    [16,  { x: 3, y: 1 }],
+]);
+
+const coordinates = (value: number) => spriteMap.get(value) ?? { x: 0, y: 0 };
 
 function StepSprite({ value }: Props) {
     const coordinate = coordinates(value);

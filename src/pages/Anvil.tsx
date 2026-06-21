@@ -1,82 +1,11 @@
-import { Button, Container, Dialog, DialogContent, DialogTitle, Divider, IconButton, List, ListItem, ListItemButton, Paper, Slider, Stack, TextField, Typography } from "@mui/material"
+import { Button, Container, Divider, Paper, Slider, Stack, TextField, Typography } from "@mui/material"
 import StepSprite from "../components/StepSprite"
 import Conditions from "../components/Conditions"
-import { useEffect, useRef, useState } from "react"
-import { getTrace, MathError } from "../logic/math"
-import { createItem, deleteItem, loadItems, saveItem, type Item } from "../logic/storage"
-import DeleteIcon from '@mui/icons-material/Delete';
-
-const values = [
-    [-3, -6, 2, 7],
-    [-9, -15, 13, 16]
-]
-
-
-function DialogStorage({open, onClose}: {open: boolean, onClose: (item: Item | null) => void}) {
-    const [items, setItems] = useState(() => loadItems());
-    useEffect(() => {
-        if (!open) return;
-        setItems(loadItems());
-    }, [open]);
-
-    const del = (id: number) => {
-        deleteItem(id);
-        setItems(loadItems());
-    }
-
-    return (
-        <Dialog open={open} onClose={() => onClose(null)} maxWidth="sm" fullWidth>
-            <DialogTitle>Сохранённые расчёты</DialogTitle>
-            <DialogContent>
-                <List sx={{ pt: 0 }}>
-                    {items.map((item) => (
-                        <ListItem disablePadding key={item.id} secondaryAction={
-                            <IconButton edge="end" aria-label="delete" onClick={() => del(item.id)}>
-                                <DeleteIcon />
-                            </IconButton>
-                        }>
-                            <ListItemButton onClick={() => onClose(item)}>
-                                {item.name} (Из: {item.fromPoints}, В: {item.toPoints}, условия: {item.conditions.join(', ')})
-                            </ListItemButton>
-                        </ListItem>
-                    ))}
-                </List>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-function DialogSaveItem({open, onClose, fromPoints, toPoints, conditions}: {open: boolean, onClose: () => void, fromPoints: number, toPoints: number, conditions: number[]}) {
-    const name = useRef<HTMLInputElement>(null);
-    
-    const handleSubmit = (event: React.FormEvent) => {
-        if (!name.current) return;
-        event.preventDefault();
-        const item = createItem(
-            name.current.value,
-            conditions,
-            fromPoints,
-            toPoints
-        );
-        saveItem(item);
-        onClose();
-    }
-
-    return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-            <DialogTitle>Сохранить расчёт</DialogTitle>
-            <DialogContent>
-                <form onSubmit={handleSubmit}>
-                    <Stack spacing={2} sx={{ marginTop: 1 }}>
-                        <TextField required label="Название" fullWidth inputRef={name} />
-                        <Button variant="contained" type="submit">Сохранить</Button>
-                    </Stack>
-                </form>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
+import DialogStorage from "../components/DialogStorage"
+import DialogSaveItem from "../components/DialogSaveItem"
+import { useMemo, useState } from "react"
+import { getTrace, MathError, steps } from "../logic/math"
+import { type Item } from "../logic/storage"
 
 
 function Anvil() {
@@ -86,14 +15,16 @@ function Anvil() {
     const [storageOpen, setStorageOpen] = useState<boolean>(false);
     const [saveOpen, setSaveOpen] = useState<boolean>(false);
 
-    let steps: number[] = [];
-    try {
-        steps = getTrace(fromPoints, toPoints - conditions.reduce((a, b) => a + b, 0));
-    } catch (e) {
-        if (e instanceof MathError) {
-            steps = [];
+    const trace = useMemo(() => {
+        try {
+            return getTrace(fromPoints, toPoints - conditions.reduce((a, b) => a + b, 0));
+        } catch (e) {
+            if (e instanceof MathError) {
+                return [];
+            }
+            throw e;
         }
-    }
+    }, [fromPoints, toPoints, conditions]);
 
     const addCondition = (value: number) => {
         if (conditions.length < 3) {
@@ -131,9 +62,9 @@ function Anvil() {
                 <Stack direction="row" spacing={4} flexShrink={0}>
                     <Stack alignItems={"center"}>
                         <Conditions conditions={conditions} />
-                        {values.map((row, rowIndex) => (
+                        {[0, 1].map((rowIndex) => (
                             <Stack key={rowIndex} direction="row">
-                                {row.map((value, index) => (
+                                {steps.slice(rowIndex * 4, rowIndex * 4 + 4).map((value, index) => (
                                     <Button key={index} variant="text" onClick={() => addCondition(value)} aria-label={`Add condition ${value}`} sx={{ padding: 1 }}>
                                         <StepSprite value={value} />
                                     </Button>
@@ -166,7 +97,7 @@ function Anvil() {
                             Шаги:
                         </Typography>
                         <Stack direction="row" flexWrap={"wrap"} width="100%">
-                            {steps.map((value, index) => (
+                            {trace.map((value, index) => (
                                 <StepSprite key={index} value={value} />
                             ))}
                             {conditions.map((value, index) => (
